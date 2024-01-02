@@ -2,6 +2,8 @@ from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, DateT
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from core.database import Base
+from v1.models.boards import Board
+from v1.models.label_cards import LabelCard
 
 class Label(Base):
     __tablename__ = 'labels'
@@ -12,5 +14,5 @@ class Label(Base):
     updated_at = Column(DateTime, nullable = False, default = None, onupdate = datetime.now())
     board_id = Column(Integer, ForeignKey("boards.id"))
 
-    board = relationship("Board", back_populates = "labels")
-    label_cards = relationship("LabelCard", back_populates = "label")
+    # board = relationship("Board", back_populates = "labels")
+    # label_cards = relationship("LabelCard", back_populates = "label")
