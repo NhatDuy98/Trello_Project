@@ -1,7 +1,11 @@
-from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, DateTime, func
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, func
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from core.database import Base
+# from v1.models.work_spaces import WorkSpace
+# from v1.models.members import Member
+
+
 
 class User(Base):
     __tablename__= 'users'
@@ -13,8 +17,27 @@ class User(Base):
     is_active = Column(Boolean, nullable = False, default = True)
     is_delete = Column(Boolean, nullable = False, default = False)
     created_at = Column(DateTime, nullable = False, server_default = func.now())
-    updated_at = Column(DateTime, nullable = False, default = None, onupdate = datetime.now())
+    updated_at = Column(DateTime, nullable = False, server_default = func.now(), onupdate = datetime.now())
     deleted_at = Column(DateTime)
 
-    work_spaces = relationship("WorkSpace", back_populates = "user")
-    members = relationship("Member", back_populates = "user")
+    @classmethod
+    def __camel_to_snake(cls, input_str: str) -> str:
+        output_str = "".join(['_' + i.lower() if i.isupper() else i for i in input_str]).lstrip('_')
+        return output_str
+
+    @classmethod
+    def __snake_to_camel(cls, input_str: str) -> str:
+        string_split = input_str.split("_")
+        return string_split[0] + "".join(word.capitalize() for word in string_split[1:])
+
+    @classmethod
+    def from_dto(cls, UserResponse):
+        result = {User.__camel_to_snake(key): value for key, value in UserResponse.dict().items()}
+        return cls(**result)
+    
+    def to_dto(self):
+        result = {User.__snake_to_camel(key): getattr(self, key) for key in self.__dict__.keys() if not key.startswith('_')}
+        return result
+
+    # work_spaces = relationship("WorkSpace", back_populates = "user")
+    # members = relationship("Member", back_populates = "user")

@@ -2,6 +2,8 @@ from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, DateT
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from core.database import Base
+from v1.models.list_works import ListWork
+from v1.models.label_cards import LabelCard
 
 class Card(Base):
     __tablename__ = 'cards'
@@ -14,5 +16,5 @@ class Card(Base):
     deleted_at = Column(DateTime)
     list_work_id = Column(Integer, ForeignKey("list_works.id"))
 
-    list_work = relationship("ListWork", back_populates = 'cards')
-    label_cards = relationship("LabelCard", back_populates = "card")
+    # list_work = relationship("ListWork", back_populates = 'cards')
+    # label_cards = relationship("LabelCard", back_populates = "card")

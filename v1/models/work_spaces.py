@@ -12,5 +12,5 @@ class WorkSpace(Base):
     updated_at = Column(DateTime, nullable = False, default = None, onupdate = datetime.now())
     user_id = Column(Integer, ForeignKey("users.id"))
 
-    user = relationship("User", back_populates = "work_spaces")
-    boards = relationship("Board", back_populates = "work_space")
+    # user = relationship("User", back_populates = "work_spaces")
+    # boards = relationship("Board", back_populates = "work_space")
