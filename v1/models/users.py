@@ -32,11 +32,11 @@ class User(Base):
 
     @classmethod
     def from_dto(cls, UserResponse):
-        result = {User.__camel_to_snake(key): value for key, value in UserResponse.dict().items()}
+        result = {cls.__camel_to_snake(key): value for key, value in UserResponse.dict().items()}
         return cls(**result)
     
     def to_dto(self):
-        result = {User.__snake_to_camel(key): getattr(self, key) for key in self.__dict__.keys() if not key.startswith('_')}
+        result = {self.__snake_to_camel(key): getattr(self, key) for key in self.__dict__.keys() if not key.startswith('_') and hasattr(self, key)}
         return result
 
     # work_spaces = relationship("WorkSpace", back_populates = "user")

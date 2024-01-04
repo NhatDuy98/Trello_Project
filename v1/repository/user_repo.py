@@ -5,14 +5,14 @@ from v1.schemas import user_schemas
 def find_by_id(
     db: Session,
     id: int
-):
+) -> User:
     return db.query(User).filter(User.id == id).first()
 
 
 def find_by_email(
     db: Session,
     email: str
-):
+) -> User:
     return db.query(User).filter(User.email == email).first()
 
 
@@ -25,7 +25,7 @@ def get_all_users_with_pagination(
         search: str = None,
         is_active: bool = None,
         is_delete: bool = None
-):
+) -> list[User]:
     offset = (page - 1) * limit
     query = db.query(User)
 
@@ -51,14 +51,6 @@ def get_all_users_with_pagination(
     users = query.offset(offset).limit(limit).all()
     return users
 
-def count_users(db: Session):
+def count_users(db: Session) -> int:
     return db.query(User).count()
 
-def create_user(
-    db: Session,
-    user: User
-):
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
