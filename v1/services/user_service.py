@@ -1,4 +1,5 @@
 from v1.repository import user_repo
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from v1.schemas import user_schemas
 from auth import auth_service
@@ -8,13 +9,13 @@ from datetime import datetime
 def find_user_by_id(
     db: Session,
     id: int
-):
+) -> User:
     return user_repo.find_by_id(db, id)
 
 def find_user_by_email(
     db: Session,
     email: str
-):
+) -> User:
     return user_repo.find_by_email(db, email)
 
 def get_all_users(
@@ -50,19 +51,70 @@ def get_all_users(
         pagination = pagination
     )
 
-def create_user(
-        db: Session,
-        user: user_schemas.UserCreate
+def get_user_by_id(
+    db: Session,
+    id: int
 ) -> user_schemas.User:
-    user.password = auth_service.get_password_hash(user.password)
-    db_user = User.from_dto(user)
-
-    user_created = user_repo.create_user(
-        db = db,
-        user = db_user
+    user = user_repo.find_by_id(
+        db,
+        id
     )
+    return user.to_dto()
 
-    user_response = user_created.to_dto()
+def update_all_info_user(
+    db: Session,
+    id: int,
+    user: user_schemas.UserUpdate
+) -> user_schemas.User:
 
-    return user_response
+    db_user = user_repo.find_by_id(db, id)
 
+    if db_user.is_active is False:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "user deleted can not update")
+
+    for field in user.dict(exclude_unset=True):
+        setattr(db_user, field, getattr(user, field))
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user.to_dto()
+
+def update_part_info_user(
+    db: Session,
+    id: int,
+    user: user_schemas.UpdateAPart
+) -> user_schemas.User:
+    db_user = user_repo.find_by_id(db, id)
+
+    if db_user.is_active is False:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "user deleted can not update")
+
+    for field in user.dict(exclude_unset=True):
+        setattr(db_user, field, getattr(user, field))
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user.to_dto()
+
+def soft_delete_user(
+    db: Session,
+    id: int
+) -> user_schemas.User:
+    user = user_repo.find_by_id(db, id)
+
+    if user.is_active is False:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "user already deleted")
+
+    user.is_delete = True
+    user.is_active = False
+    user.deleted_at = datetime.now()
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user.to_dto()
