@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from v1.routes.user_router import router as user_router
+from v1.routes.work_space_router import router as work_space_router
 
 
 app = FastAPI()
 app.include_router(user_router)
+app.include_router(work_space_router)
 
 @app.get("/", response_class = HTMLResponse)
 def home():
