@@ -19,6 +19,14 @@ class WorkSpaceModel(ModelConfig):
 class WorkSpaceCreate(WorkSpaceModel):
     pass
 
+class WorkSpaceUpdate(ModelConfig):
+    work_space_name: str = Field(None, min_length = 1, max_length = 45, description = "name must have 1 to 45 characters")
+    desciption: str | None = Field(None, max_length = 255, description = "too long")
+
+class WorkSpaceUpdated(WorkSpaceUpdate):
+    id: int = Field(..., gt = 0)
+    user_id: int = Field(..., gt = 0)
+
 class WorkSpace(WorkSpaceModel):
     id: int = Field(..., gt = 0)
     user_id: int = Field(..., gt = 0)
@@ -27,3 +35,4 @@ class WorkSpace(WorkSpaceModel):
 class WorkSpaceResponse(BaseModel):
     data: list[WorkSpace] = []
     pagination: PaginationModel
+

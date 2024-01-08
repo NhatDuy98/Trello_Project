@@ -36,6 +36,18 @@ def get_all_work_spaces(
     )
     return work_spaces
 
+@router.get('/work_spaces/{id}', response_model = work_space_schemas.WorkSpace, status_code = status.HTTP_200_OK)
+def get_a_work_space(
+    db: db_dependency,
+    id: Annotated[int, Path(...)]
+):
+    work_space_response = work_space_service.get_a_work_space_response(db, id)
+
+    if work_space_response is None:
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = "work space not found")
+
+    return work_space_response
+
 @router.post('/{user_id}/work_spaces', response_model = work_space_schemas.WorkSpace, status_code = status.HTTP_201_CREATED)
 def create_work_space(
     db: db_dependency,
@@ -51,6 +63,21 @@ def create_work_space(
     if work_space_response is None:
         raise HTTPException(status_code = status.HTTP_422_UNPROCESSABLE_ENTITY, detail = "please fill all fields")
 
+    return work_space_response
+
+@router.patch('/{user_id}/work_spaces/{work_space_id}', response_model = work_space_schemas.WorkSpaceUpdated, status_code = status.HTTP_200_OK)
+def update_info_work_space(
+    db: db_dependency,
+    user_id: Annotated[int, Path(...)],
+    work_space_id: Annotated[int, Path(...)],
+    work_space: Annotated[work_space_schemas.WorkSpaceUpdate, Body(...)]
+):  
+    work_space_response = work_space_service.update_work_space(
+        db = db,
+        user_id = user_id,
+        work_space_id = work_space_id,
+        work_space = work_space
+    )
     return work_space_response
 
 @router.delete('/{user_id}/work_spaces/{work_space_id}', status_code = status.HTTP_200_OK)
