@@ -17,8 +17,13 @@ class Settings(BaseSettings):
     MYSQL_PORT: str = os.environ.get('MYSQL_PORT', 3306)
     DATABASE_URL: str = f"mysql+pymysql://{MYSQL_USER}:%s@{MYSQL_SERVER}:{MYSQL_PORT}/{MYSQL_DB}" % quote_plus(MYSQL_PASSWORD)
 
-    #App secret key
-    # SECRET_KEY: str = os.environ.get('SECRET_KEY')
+    #JWT
+    # import secrets
+    # print(secrets.token_hex(32))
+    # create secret token   
+    JWT_SECRET_KEY: str = os.environ.get("JWT_SECRET_KEY", "08c8b8a7405d3db1e0738228f6d9e2499eb8114fd83f01bf9de4f35ae952d720")
+    JWT_ALGORITHM: str = os.environ.get('JWT_ALGORITHM', 'HS256')
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.environ.get('ACCESS_TOKEN_EXPIRE_MINUTES', 30)
 
 def get_settings() -> Settings:
     return Settings()
