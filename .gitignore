@@ -1,0 +1,4 @@
+#ignore all file in venv
+venv
+#ignore all file .pyc
+*.pyc
