@@ -2,10 +2,6 @@ from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, DateT
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from core.database import Base
-from v1.models.work_spaces import WorkSpace
-from v1.models.members import Member
-from v1.models.list_works import ListWork
-from v1.models.labels import Label
 
 class Board(Base):
     __tablename__ = 'boards'
@@ -18,7 +14,7 @@ class Board(Base):
     deleted_at = Column(DateTime, default = None)
     work_space_id = Column(Integer, ForeignKey("work_spaces.id"))
 
-    # work_space = relationship("WorkSpace", back_populates = "boards")
+    work_space = relationship("WorkSpace", back_populates = "boards")
     # members = relationship("Member", back_populates = "board")
-    # list_works = relationship("ListWork", back_populates = "board")
-    # labels = relationship("Label", back_populates = "board")
+    list_works = relationship("ListWork", back_populates = "board")
+    labels = relationship("Label", back_populates = "board")

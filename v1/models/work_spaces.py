@@ -34,4 +34,4 @@ class WorkSpace(Base):
         return result
 
     user = relationship("User", back_populates = "work_spaces")
-    # boards = relationship("Board", back_populates = "work_space")
+    boards = relationship("Board", back_populates = "work_space")
