@@ -2,10 +2,6 @@ from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, DateT
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from core.database import Base
-from v1.models.work_spaces import WorkSpace
-from v1.models.members import Member
-from v1.models.list_works import ListWork
-from v1.models.labels import Label
 
 class Board(Base):
     __tablename__ = 'boards'
@@ -14,11 +10,11 @@ class Board(Base):
     description = Column(String(255))
     is_delete = Column(Boolean, nullable = False, default = False)
     created_at = Column(DateTime, nullable = False, server_default = func.now())
-    updated_at = Column(DateTime, nullable = False, default = None, onupdate = datetime.now())
-    deleted_at = Column(DateTime, default = None)
-    work_space_id = Column(Integer, ForeignKey("work_spaces.id"))
+    updated_at = Column(DateTime, nullable = False, server_default = func.now(), onupdate = datetime.now())
+    deleted_at = Column(DateTime)
+    work_space_id = Column(Integer, ForeignKey("work_spaces.id"), nullable = False)
 
-    # work_space = relationship("WorkSpace", back_populates = "boards")
+    work_space = relationship("WorkSpace", back_populates = "boards")
     # members = relationship("Member", back_populates = "board")
-    # list_works = relationship("ListWork", back_populates = "board")
+    list_works = relationship("ListWork", back_populates = "board")
     # labels = relationship("Label", back_populates = "board")
