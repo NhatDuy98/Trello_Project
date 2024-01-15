@@ -1,4 +1,8 @@
-#ignore all file in venv
-venv
-#ignore all file .pyc
-*.pyc
+#ignore directory venv
+venv/
+#ignore all directory __pycache__
+**/__pycache__/
+#ignore file .env
+.env
+#ignore directory .vscode
+.vscode/
