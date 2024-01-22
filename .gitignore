@@ -1,4 +1,10 @@
 #ignore all file in venv
-venv
+venv/
 #ignore all file .pyc
-*.pyc
+__pycache__
+#ignore env
+.env
+#mac
+.DS_Store
+#ignore vscode
+.vscode/

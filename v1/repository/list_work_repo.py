@@ -1,19 +1,26 @@
 from sqlalchemy.orm import Session
 from v1.models.list_works import ListWork
 
-def get_by_id(
-    db: Session,
-    id: int
-):
-    return db.query(ListWork).filter(ListWork.id == id).first()
+class ListWorkRepository:
 
-def get_all(
-    db: Session,
-):
-    query = db.query(ListWork).all()
-    return query
+    def __init__(self, db: Session, list_work: ListWork):
+        self.db = db
+        self.list_work = list_work
 
-def count_all(
-    db: Session
-):
-    return db.query(ListWork).count()
+    def get_by_id(
+        self,
+        id: int
+    ) -> ListWork:
+        return self.db.query(self.list_work).filter(self.list_work.id == id).first()
+    
+    def get_all(
+        self
+    ) -> list[ListWork]:
+        return self.db.query(self.list_work).all()
+    
+    async def save_list(
+        self
+    ):
+        self.db.add(self.list_work)
+        self.db.commit()
+        self.db.refresh(self.list_work)
