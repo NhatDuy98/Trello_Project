@@ -6,5 +6,5 @@ __pycache__
 .env
 #ignore directory .vscode
 .vscode/
-#macOS
+#mac
 .DS_Store
