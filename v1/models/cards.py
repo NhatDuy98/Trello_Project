@@ -2,6 +2,7 @@ from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, DateT
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from core.database import Base
+from v1.models.utils import CamelCaseConverter
 
 class Card(Base):
     __tablename__ = 'cards'
@@ -14,14 +15,8 @@ class Card(Base):
     deleted_at = Column(DateTime)
     list_work_id = Column(Integer, ForeignKey("list_works.id"), nullable = False)
 
-    @classmethod
-    def __snake_to_camel(cls, input_str: str) -> str:
-        string_split = input_str.split("_")
-        return string_split[0] + "".join(word.capitalize() for word in string_split[1:])
-    
     def to_dto(self):
-        result = {self.__snake_to_camel(key): getattr(self, key) for key in self.__dict__.keys() if not key.startswith('_') and hasattr(self, key)}
-        return result
+        return CamelCaseConverter.to_dto(self)
 
     list_work = relationship("ListWork", back_populates = 'cards')
     label_cards = relationship("LabelCard", back_populates = "card")

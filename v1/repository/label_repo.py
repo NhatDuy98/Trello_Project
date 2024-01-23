@@ -1,16 +1,33 @@
 from sqlalchemy.orm import Session
 from v1.models.labels import Label
 
-def get_by_id(
-    db: Session,
-    id: int
-):
-    return db.query(Label).filter(Label.id == id).first()
+class LabelRepository:
+    def __init__(self, db: Session, label: Label):
+        self.db = db
+        self.label = label
 
-def get_all(
-    db: Session,
-    board_id: int
-):
-    query = db.query(Label).filter(Label.board_id == board_id).all()
+    def get_by_id(
+        self,
+        id: int
+    ) -> Label:
+        return self.db.query(self.label).filter(self.label.id == id).first()
+    
+    def get_all(
+        self,
+        board_id: int
+    ) -> list[Label]:
+        return self.db.query(self.label).filter(self.label.board_id == board_id).all()
+    
+    async def save_label(
+        self
+    ):
+        self.db.add(self.label)
+        self.db.commit()
+        self.db.refresh(self.label)
 
-    return query
+    
+    async def delete_label(
+        self
+    ):
+        self.db.delete(self.label)
+        self.db.commit()

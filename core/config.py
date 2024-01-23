@@ -25,5 +25,10 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = os.environ.get('JWT_ALGORITHM', 'HS256')
     ACCESS_TOKEN_EXPIRE_MINUTES: int = os.environ.get('ACCESS_TOKEN_EXPIRE_MINUTES', 30)
 
+    END_POINT_V1: str = '/api/v1'
+    END_POINT_LABEL: str = 'labels'
+    END_POINT_CARD: str = 'cards'
+    END_POINT_LABEL_CARD: str = 'card_labels'
+
 def get_settings() -> Settings:
     return Settings()
