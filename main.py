@@ -9,7 +9,6 @@ from v1.main_v1 import v1_router
 
 settings = get_settings()
 
-
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key = settings.SESSION_SECRET)
 app.include_router(home_router)
