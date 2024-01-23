@@ -1,4 +1,6 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Body
+from fastapi import APIRouter, status, Depends, HTTPException, Body, Request
+from starlette.responses import RedirectResponse
+from authlib.integrations.starlette_client import OAuthError
 from core.database import get_db, engine
 from sqlalchemy.orm import Session
 from typing import Annotated
@@ -10,11 +12,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from auth import auth_service
 from datetime import timedelta
 from auth.auth_schemas import TokenResponse
-from core.config import get_settings
+from core.config import get_settings, get_oath
 
 users.Base.metadata.create_all( bind = engine )
 
 settings = get_settings()
+oauth = get_oath()
 
 router = APIRouter(
     prefix = "/api/v1",
@@ -66,3 +69,26 @@ async def login(
     user: Annotated[users.User, Depends(auth_service.get_current_user)]
 ):
     return user
+
+@router.get('/login', status_code = status.HTTP_200_OK)
+async def login_google(request: Request):
+    redirect_uri = request.url_for('auth_google')
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@router.get('/auth', status_code = status.HTTP_200_OK)
+async def auth_google(request: Request):
+    try:
+        response = await oauth.google.authorize_access_token(request)
+    except OAuthError:
+        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = 'authorize failed')
+    
+    user = response.get('userinfo')
+    if user:
+        request.session['user'] = dict(user)
+
+    return RedirectResponse(url = '/')
+
+@router.get('/logout', status_code = status.HTTP_200_OK)
+async def logout_google(request: Request):
+    request.session.pop('user')
+    return RedirectResponse(url = '/')
