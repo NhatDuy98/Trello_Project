@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     END_POINT_V1: str = "/api/v1"
     END_POINT_BOARD: str = 'boards'
     END_POINT_MEMBER: str = 'members'
+    END_POINT_LIST: str = 'lists'
 
 def get_settings() -> Settings:
     return Settings()
