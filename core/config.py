@@ -34,10 +34,5 @@ class Settings(BaseSettings):
     END_POINT_CARD: str = 'cards'
     END_POINT_LABEL_CARD: str = 'card_labels'
 
-    END_POINT_V1: str = '/api/v1'
-    END_POINT_LABEL: str = 'labels'
-    END_POINT_CARD: str = 'cards'
-    END_POINT_LABEL_CARD: str = 'card_labels'
-
 def get_settings() -> Settings:
     return Settings()
