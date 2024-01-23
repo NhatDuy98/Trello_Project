@@ -11,8 +11,8 @@ class LabelModel(ModelResponse):
     label_name: str | None = Field(None, min_length = 1, max_length = 20)
     color: str = Field(..., min_length = 1, max_length = 100)
 
-class LabelAdd(LabelModel):
-    pass
+class LabelAdd(ModelResponse):
+    id: int = Field(..., gt = 0)
 
 class LabelCardModel(ModelResponse):
     id: int = Field(..., gt = 0)

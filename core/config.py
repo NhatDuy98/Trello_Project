@@ -29,5 +29,9 @@ class Settings(BaseSettings):
     END_POINT_BOARD: str = 'boards'
     END_POINT_MEMBER: str = 'members'
 
+    END_POINT_LABEL: str = 'labels'
+    END_POINT_CARD: str = 'cards'
+    END_POINT_LABEL_CARD: str = 'card_labels'
+
 def get_settings() -> Settings:
     return Settings()
