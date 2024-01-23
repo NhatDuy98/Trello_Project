@@ -20,5 +20,5 @@ class Board(Base):
 
     work_space = relationship("WorkSpace", back_populates = "boards")
     members = relationship("Member", back_populates = "board")
-    # list_works = relationship("ListWork", back_populates = "board")
-    # labels = relationship("Label", back_populates = "board")
+    list_works = relationship("ListWork", back_populates = "board")
+    labels = relationship("Label", back_populates = "board")

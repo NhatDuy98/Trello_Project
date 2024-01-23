@@ -18,4 +18,4 @@ class ListWork(Base):
         return CamelCaseConverter.to_dto(self)
 
     board = relationship("Board", back_populates = "list_works")
-    # cards = relationship("Card", back_populates = 'list_work')
+    cards = relationship("Card", back_populates = 'list_work')
