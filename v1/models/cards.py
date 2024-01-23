@@ -2,8 +2,7 @@ from sqlalchemy import Boolean, Column, Integer, String, Text, ForeignKey, DateT
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from core.database import Base
-from v1.models.list_works import ListWork
-from v1.models.label_cards import LabelCard
+from v1.models.utils import CamelCaseConverter
 
 class Card(Base):
     __tablename__ = 'cards'
@@ -12,9 +11,12 @@ class Card(Base):
     description = Column(Text)
     is_delete = Column(Boolean, nullable = False, default = False)
     created_at = Column(DateTime, nullable = False, server_default = func.now())
-    updated_at = Column(DateTime, nullable = False, default = None, onupdate = datetime.now())
+    updated_at = Column(DateTime, nullable = False, server_default = func.now(), onupdate = datetime.now())
     deleted_at = Column(DateTime)
-    list_work_id = Column(Integer, ForeignKey("list_works.id"))
+    list_work_id = Column(Integer, ForeignKey("list_works.id"), nullable = False)
 
-    # list_work = relationship("ListWork", back_populates = 'cards')
-    # label_cards = relationship("LabelCard", back_populates = "card")
+    def to_dto(self):
+        return CamelCaseConverter.to_dto(self)
+
+    list_work = relationship("ListWork", back_populates = 'cards')
+    label_cards = relationship("LabelCard", back_populates = "card")
