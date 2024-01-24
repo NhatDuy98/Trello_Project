@@ -15,8 +15,8 @@ class Member(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable = False)
     board_id = Column(Integer, ForeignKey("boards.id"), nullable = False)
     role = Column(Enum(RoleMemberEnum), default = RoleMemberEnum.MEMBER)
-    created_at = Column(DateTime, nullable = False, server_default = func.now())
-    updated_at = Column(DateTime, nullable = False, server_default = func.now(), onupdate = datetime.now())
+    created_at = Column(DateTime, nullable = False, default = datetime.now())
+    updated_at = Column(DateTime, nullable = False, default = datetime.now(), onupdate = datetime.now())
     
     def to_dto(self):
         return CamelCaseConverter.to_dto(self)

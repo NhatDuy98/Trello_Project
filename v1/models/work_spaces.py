@@ -9,8 +9,8 @@ class WorkSpace(Base):
     work_space_name = Column(String(45), nullable = False)
     desciption = Column(String(255))
     is_delete = Column(Boolean, nullable = False, default = False)
-    created_at = Column(DateTime, nullable = False, server_default = func.now())
-    updated_at = Column(DateTime, nullable = False, server_default = func.now(), onupdate = datetime.now())
+    created_at = Column(DateTime, nullable = False, default = datetime.now())
+    updated_at = Column(DateTime, nullable = False, default = datetime.now(), onupdate = datetime.now())
     deleted_at = Column(DateTime)
     user_id = Column(Integer, ForeignKey("users.id"), nullable = False)
 
