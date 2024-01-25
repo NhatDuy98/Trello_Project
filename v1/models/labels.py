@@ -9,8 +9,8 @@ class Label(Base):
     id = Column(Integer, primary_key = True, autoincrement = True, index = True)
     label_name = Column(String(20))
     color = Column(String(100), nullable = False)
-    created_at = Column(DateTime, nullable = False, server_default = func.now())
-    updated_at = Column(DateTime, nullable = False, server_default = func.now(), onupdate = datetime.now())
+    created_at = Column(DateTime, nullable = False, default = datetime.now())
+    updated_at = Column(DateTime, nullable = False, default = datetime.now(), onupdate = datetime.now())
     board_id = Column(Integer, ForeignKey("boards.id"), nullable = False)
 
     def to_dto(self):

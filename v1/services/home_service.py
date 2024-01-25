@@ -16,7 +16,7 @@ def create_user(
         user: home_schemas.UserCreate
 ) -> home_schemas.User:
     user.password = auth_service.get_password_hash(user.password)
-    db_user = User.from_dto(user)
+    db_user = User(**user.dict())
 
     user_created = home_repo.create_user(
         db = db,
