@@ -1,4 +1,6 @@
 import os
+from starlette.config import Config
+from authlib.integrations.starlette_client import OAuth
 from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import quote_plus
@@ -33,6 +35,28 @@ class Settings(BaseSettings):
     END_POINT_LABEL: str = 'labels'
     END_POINT_CARD: str = 'cards'
     END_POINT_LABEL_CARD: str = 'card_labels'
+    #OAuth2 Google
+    CLIENT_ID: str = os.environ.get('CLIENT_ID')
+    CLIENT_SECRET: str = os.environ.get('CLIENT_SECRET')
+    SESSION_SECRET: str = os.environ.get('SESSION_SECRET')
 
 def get_settings() -> Settings:
     return Settings()
+
+def get_oath():
+    settings = get_settings()
+
+    config_data = {
+        'GOOGLE_CLIENT_ID': settings.CLIENT_ID,
+        'GOOGLE_CLIENT_SECRET': settings.CLIENT_SECRET
+    }
+
+    starlette_config = Config(environ = config_data)
+    oauth = OAuth(starlette_config)
+    oauth.register(
+        name = 'google',
+        server_metadata_url = 'https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs = {'scope': 'openid email profile'}
+    )
+
+    return oauth
