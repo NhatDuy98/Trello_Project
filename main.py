@@ -22,7 +22,7 @@ def home(request: Request):
     if user:
         return f"""
             <p>{user}</p>
-            <a href = 'http://127.0.0.1:8000/api/v1/logout'>Logout</a>
+            <a href = '/api/v1/logout'>Logout</a>
 """
 
 
@@ -30,6 +30,6 @@ def home(request: Request):
     <h1>Welcome</h1>
     <a href='http://127.0.0.1:8000/docs'>http://127.0.0.1:8000/docs</a><br>
     <a href='http://127.0.0.1:8000/redoc'>http://127.0.0.1:8000/redoc</a><br>
-    <a href='http://127.0.0.1:8000/api/v1/login'>Login</a>
+    <a href='/api/v1/login'>Login</a>
 """
 
