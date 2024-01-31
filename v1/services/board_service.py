@@ -6,6 +6,8 @@ from v1.schemas import board_schemas
 from v1.models import boards, members
 from v1.services import user_service, work_space_service
 
+board_model = boards.Board
+
 class BoardService:
 
     def __init__(self, db: Session, board: boards.Board):
@@ -21,8 +23,10 @@ class BoardService:
             board_rp = board_repo.BoardRepository(self.db, self.board)
 
             board = board_rp.get_by_id(id)
-        
-            return board.to_dto()
+
+            if board:
+                return board.to_dto()
+
         except HTTPException:
             raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'board not found')
 
@@ -34,21 +38,29 @@ class BoardService:
         sort_desc: bool = False,
         search: str = None
     ):
-        board_repos = board_repo.BoardRepository(self.db, self.board)
+        try:
+            if page <= 0 or limit <= 0:
+                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+        
+            if sort_by not in board_model.__dict__ and sort_by is not None:
+                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
 
-        boards = board_repos.get_all(
-            page = page,
-            limit = limit,
-            sort_by = sort_by,
-            sort_desc = sort_desc,
-            search = search
-        )
+            board_repos = board_repo.BoardRepository(self.db, self.board)
 
-        total = board_repos.count_all()
+            boards, total = board_repos.get_all(
+                page = page,
+                limit = limit,
+                sort_by = sort_by,
+                sort_desc = sort_desc,
+                search = search
+            )
 
-        pagination = board_schemas.PaginationModel(page = page, limit = limit, totalRows = total)
+            pagination = board_schemas.PaginationModel(page = page, limit = limit, totalRows = total)
 
-        return board_schemas.BoardResponse(data = [board.to_dto() for board in boards], pagination = pagination)
+            return board_schemas.BoardResponse(data = [board.to_dto() for board in boards], pagination = pagination)
+        
+        except HTTPException:
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
     
     async def create_board(
         self,
@@ -56,7 +68,7 @@ class BoardService:
         work_space_id: int,
         board_create: board_schemas.BoardCreate
     ):
-        if board_create.dict(exclude_unset = True) is None:
+        if not board_create.dict(exclude_unset = True):
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
         
         db_user = user_service.find_user_by_id(self.db, user_id)
@@ -76,6 +88,11 @@ class BoardService:
             raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
         
         try:
+            for field in board_create.dict(exclude_unset=True):
+                field_value = getattr(board_create, field)
+                if isinstance(field_value, str):
+                    setattr(board_create, field, field_value.strip())
+
             board_save = boards.Board(**board_create.dict(), work_space_id = work_space_id)
         
             db_board = board_repo.BoardRepository(self.db, board_save)
@@ -112,8 +129,12 @@ class BoardService:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'can not update board deleted')
 
         try:
-            for field in board_update.dict(exclude_unset = True):
-                setattr(db_board, field, getattr(board_update, field))
+            for field in board_update.dict(exclude_unset=True):
+                field_value = getattr(board_update, field)
+                if isinstance(field_value, str):
+                    setattr(db_board, field, field_value.strip())
+                else:
+                    setattr(db_board, field, field_value)
 
             self.db.commit()
             self.db.refresh(db_board)

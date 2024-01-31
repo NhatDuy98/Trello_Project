@@ -72,6 +72,11 @@ class LabelService:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
         
         try:
+            for field in label.dict(exclude_unset = True):
+                field_value = getattr(label, field)
+                if isinstance(field_value, str):
+                    setattr(label, field, field_value.strip())
+
             label_rp = label_repo.LabelRepository(db = self.db, label = self.label)
 
             labels_check = label_rp.get_all(board_id = board_id)
@@ -79,6 +84,7 @@ class LabelService:
             for i in labels_check:
                 if i.color == label.color and i.label_name == label.label_name:
                     raise HTTPException(status_code = status.HTTP_409_CONFLICT, detail = 'duplicate')
+                
                 
             db_label = self.label(**label.dict(), board_id = board_id)
 
@@ -112,6 +118,11 @@ class LabelService:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
         
         try:
+            for field in label.dict(exclude_unset = True):
+                field_value = getattr(label, field)
+                if isinstance(field_value, str):
+                    setattr(label, field, field_value.strip())
+
             label_rp = label_repo.LabelRepository(db = self.db, label = self.label)
 
             labels_check = label_rp.get_all(board_id = board_id)
@@ -121,6 +132,9 @@ class LabelService:
                     raise HTTPException(status_code = status.HTTP_409_CONFLICT, detail = 'duplicate')
                 
             db_label = label_rp.get_by_id(id = label_id)
+
+            if db_label is None:
+                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'label not found')
                 
             for field in label.dict(exclude_unset = True):
                 setattr(db_label, field, getattr(label, field))

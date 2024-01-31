@@ -19,7 +19,7 @@ class BoardRepository:
         sort_by: str = None,
         sort_desc: bool = False,
         search: str = None
-    ):
+    ) -> list[Board]:
         offset = (page - 1) * limit
 
         query = self.db.query(self.board)
@@ -31,9 +31,11 @@ class BoardRepository:
             attr = getattr(Board, sort_by)
             query = query.order_by(attr.desc() if sort_desc else attr)
 
+        total = query.count()
+
         boards = query.offset(offset).limit(limit).all()
         
-        return boards
+        return boards, total
     
     def count_all(
         self

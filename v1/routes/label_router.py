@@ -37,6 +37,9 @@ def get_label_by_id(
 
     label = label_sv.get_by_id(label_id = label_id)
 
+    if label is None:
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'label not found')
+
     return label
 
 @router.post('/{board_id}'f'/{label_ep}', response_model = label_schemas.Label, status_code = status.HTTP_201_CREATED)
@@ -54,7 +57,7 @@ async def create_label(
 
     return label_response
 
-@router.patch('/{board_id}'f'/{label_ep}''/{label_id}', response_model = label_schemas.LabelUpdated, status_code = status.HTTP_200_OK)
+@router.patch('/{board_id}'f'/{label_ep}''/{label_id}', response_model = label_schemas.LabelUpdated, status_code = status.HTTP_201_CREATED)
 async def update_board(
     db: db_dependency,
     board_id: Annotated[int, Path(...)],
@@ -70,7 +73,7 @@ async def update_board(
 
     return label_response
 
-@router.delete('/{board_id}'f'/{label_ep}''/{label_id}', status_code = status.HTTP_200_OK)
+@router.delete('/{board_id}'f'/{label_ep}''/{label_id}', status_code = status.HTTP_204_NO_CONTENT)
 async def delete_label(
     db: db_dependency,
     board_id: Annotated[int, Path(...)],

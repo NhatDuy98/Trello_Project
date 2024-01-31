@@ -14,13 +14,11 @@ from datetime import timedelta
 from auth.auth_schemas import TokenResponse
 from core.config import get_settings, get_oath
 
-users.Base.metadata.create_all( bind = engine )
 
 settings = get_settings()
 oauth = get_oath()
 
 router = APIRouter(
-    prefix = "/api/v1",
     tags = ["Home"],
     responses = {404: {"description": "Home not found"}}
 )
@@ -46,6 +44,9 @@ async def create_user(
         user = user
     )
 
+    if user_response is None:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'create failed')
+
     return user_response
 
 
@@ -66,7 +67,7 @@ async def login_to_get_token(
 
 @router.get('/me', response_model = user_schemas.User, status_code = status.HTTP_200_OK)
 async def login(
-    user: Annotated[users.User, Depends(auth_service.get_current_user)]
+    user: Annotated[str, Depends(auth_service.get_current_user)]
 ):
     return user
 

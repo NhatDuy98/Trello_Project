@@ -42,6 +42,8 @@ def get_all_users_with_pagination(
             attr.desc() if sort_desc else attr
         )
 
+    total = query.count()
+
     if is_active is not None:
         query = query.filter(User.is_active == is_active)
 
@@ -49,7 +51,7 @@ def get_all_users_with_pagination(
         query = query.filter(User.is_delete == is_delete)
 
     users = query.offset(offset).limit(limit).all()
-    return users
+    return users, total
 
 def count_users(db: Session) -> int:
     return db.query(User).count()

@@ -11,6 +11,12 @@ from v1.models.users import User
 from auth.auth_schemas import TokenResponse
 from core.config import get_settings
 
+credentials_exception = HTTPException(
+        status_code = status.HTTP_401_UNAUTHORIZED,
+        detail = "Could not validate credentials",
+        headers = {"WWW-Authenticate": "Bearer"}
+    )
+
 settings = get_settings()
 
 pwd_context = CryptContext(schemes = ["bcrypt"], deprecated = "auto")
@@ -65,14 +71,8 @@ def create_access_token(
 
 def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
-    db = None
+    db = None   
 ):
-
-    credentials_exception = HTTPException(
-        status_code = status.HTTP_401_UNAUTHORIZED,
-        detail = "Could not validate credentials",
-        headers = {"WWW-Authenticate": "Bearer"}
-    )
 
     try:
         data = jwt.decode(token, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)

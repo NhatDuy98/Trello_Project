@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status, Depends, Query, Path, HTTPException, Body
-from core.database import get_db, engine
+from core.database import get_db
+from core.config import get_settings
 from sqlalchemy.orm import Session
 from typing import Annotated
 from v1.services import user_service
@@ -7,10 +8,13 @@ from v1.schemas.user_schemas import UserResponse
 from v1.schemas.user_schemas import User, UserUpdate, UpdateAPart, UserUpdate, UserUpdateAPart
 from v1.models import users
 
-users.Base.metadata.create_all( bind = engine )
+settings = get_settings()
+
+user_ep = settings.END_POINT_USER
+
 
 router = APIRouter(
-    prefix = "/api/v1/users",
+    prefix = f'/{user_ep}',
     tags = ["User"],
     responses = {404: {"description": "User not found"}}
 )
@@ -52,17 +56,12 @@ async def get_user_by_id(
 
     return user
 
-@router.put('/{id}', response_model= User, status_code = status.HTTP_200_OK)
+@router.put('/{id}', response_model= User, status_code = status.HTTP_201_CREATED)
 async def update_info_user(
     db: db_dependency,
     id: Annotated[int, Path(...)],
     user: Annotated[UserUpdate, Body(...)]
 ):
-    user_email = user_service.find_user_by_email(db= db, email = user.email)
-
-    if user_email:
-        raise HTTPException(status_code = status.HTTP_409_CONFLICT, detail = "email already used")
-    
     user_response = user_service.update_all_info_user(
         db = db,
         id = id,
@@ -74,7 +73,7 @@ async def update_info_user(
     
     return user_response
 
-@router.patch('/{id}', response_model = UserUpdateAPart, status_code = status.HTTP_200_OK)
+@router.patch('/{id}', response_model = UserUpdateAPart, status_code = status.HTTP_201_CREATED)
 async def update_part_info_user(
     db: db_dependency,
     id: Annotated[int, Path(...)],
@@ -98,7 +97,7 @@ async def update_part_info_user(
     return user_response
 
 
-@router.delete('/{id}', status_code = status.HTTP_200_OK)
+@router.delete('/{id}', status_code = status.HTTP_204_NO_CONTENT)
 async def soft_delete_user(
     db: db_dependency,
     id: Annotated[int, Path(...)]

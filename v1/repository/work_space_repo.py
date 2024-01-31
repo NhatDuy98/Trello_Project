@@ -29,10 +29,12 @@ def get_all_with_pagination(
         db_query = db_query.order_by(
             attr.desc() if sort_desc else attr
         )
+    
+    total = db_query.count()
 
     work_spaces = db_query.offset(offset).limit(limit).all()
 
-    return work_spaces
+    return work_spaces, total
 
 def count_all(db: Session):
     return db.query(WorkSpace).count()

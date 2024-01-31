@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = os.environ.get('ACCESS_TOKEN_EXPIRE_MINUTES')
 
     END_POINT_V1: str = "/api/v1"
+    END_POINT_USER: str = 'users'
+    END_POINT_WORK_SPACE: str = 'work_spaces'
     END_POINT_BOARD: str = 'boards'
     END_POINT_MEMBER: str = 'members'
     END_POINT_LIST: str = 'lists'

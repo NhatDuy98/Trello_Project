@@ -44,7 +44,7 @@ async def create_card(
 
     return card_response
 
-@router.patch('/{list_work_id}'f'/{card_ep}''/{card_id}', response_model = card_schemas.CardUpdated, status_code = status.HTTP_200_OK)
+@router.patch('/{list_work_id}'f'/{card_ep}''/{card_id}', response_model = card_schemas.CardUpdated, status_code = status.HTTP_201_CREATED)
 async def update_card(
     db: db_dependency,
     list_work_id: Annotated[int, Path(...)],
@@ -60,7 +60,7 @@ async def update_card(
 
     return card_response
 
-@router.delete('/{list_work_id}'f'/{card_ep}''/{card_id}', status_code = status.HTTP_200_OK)
+@router.delete('/{list_work_id}'f'/{card_ep}''/{card_id}', status_code = status.HTTP_204_NO_CONTENT)
 async def soft_delete(
     db: db_dependency,
     list_work_id: Annotated[int, Path(...)],
@@ -72,7 +72,7 @@ async def soft_delete(
 
     return {'message': f'delete {card_response.card_name} successful'}
 
-@router.patch(f'/{card_ep}''/{card_id}', status_code = status.HTTP_200_OK)
+@router.patch(f'/{card_ep}''/{card_id}', status_code = status.HTTP_201_CREATED)
 async def update_action_move_card(
     db: db_dependency,
     card_id: Annotated[int, Path(...)],
@@ -81,6 +81,9 @@ async def update_action_move_card(
     card_sv = card_service.CardService(db = db, card = cards.Card)
 
     card_response = await card_sv.update_action_move_card(card_id = card_id, list = list_work)
+
+    if card_response is None:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'update failed')
 
     return {'message': f'move card {card_response.card_name} successful'}
 
@@ -104,7 +107,7 @@ async def add_label_to_card(
 
     return {'message': 'add label successful'}
 
-@router.delete(f'/{card_ep}''/{card_id}'f'/{card_label_ep}''/{card_label_id}', status_code = status.HTTP_200_OK)
+@router.delete(f'/{card_ep}''/{card_id}'f'/{card_label_ep}''/{card_label_id}', status_code = status.HTTP_204_NO_CONTENT)
 async def remove_label_from_card(
     db: db_dependency,
     card_id: Annotated[int, Path(...)],
