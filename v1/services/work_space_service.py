@@ -22,33 +22,43 @@ def get_all_with_pagination(
         sort_desc: bool = False,
         search: str = None
 ) -> work_space_schemas.WorkSpaceResponse:
-    work_spaces = work_space_repo.get_all_with_pagination(
-        db = db,
-        page = page,
-        limit = limit,
-        sort_by = sort_by,
-        sort_desc = sort_desc,
-        search = search
-    )
+    try:
+        if page <= 0 or limit <= 0:
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+        
+        if sort_by not in WorkSpace.__dict__ and sort_by is not None:
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
 
-    total = work_space_repo.count_all(db)
+        work_spaces, total = work_space_repo.get_all_with_pagination(
+            db = db,
+            page = page,
+            limit = limit,
+            sort_by = sort_by,
+            sort_desc = sort_desc,
+            search = search
+        )
 
-    pagination = work_space_schemas.PaginationModel(
-        page = page,
-        limit = limit,
-        totalRows = total
-    )
+        pagination = work_space_schemas.PaginationModel(
+            page = page,
+            limit = limit,
+            totalRows = total
+        )
 
-    return work_space_schemas.WorkSpaceResponse(
-        data = [i.to_dto() for i in work_spaces],
-        pagination = pagination
-    )
+        return work_space_schemas.WorkSpaceResponse(
+            data = [i.to_dto() for i in work_spaces],
+            pagination = pagination
+        )
+    except HTTPException:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
 
 def create_work_space(
     db: Session,
     user_id: int,
     work_space: work_space_schemas.WorkSpaceCreate
 ):
+    if not work_space.dict(exclude_unset = True):
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+
     db_user = user_service.find_user_by_id(db, user_id)
 
     if db_user is None:
@@ -56,6 +66,11 @@ def create_work_space(
     
     if db_user.is_active is False:
         raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = 'user not allow')
+    
+    for field in work_space.dict(exclude_unset = True):
+        field_value = getattr(work_space, field)
+        if isinstance(field_value, str):
+            setattr(work_space, field, field_value.strip())
 
     db_work_space = WorkSpace(**work_space.dict(), user_id = user_id)
 

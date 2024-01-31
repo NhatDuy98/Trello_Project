@@ -33,12 +33,12 @@ class MemberRepository:
     def get_by_id(
         self,
         member_id: int
-    ):
+    ) -> Member:
         return self.db.query(self.member).filter(self.member.id == member_id).first()
     
     def get_id_with_both(
         self,
         board_id: int,
         member_id: int
-    ):
+    ) -> Member:
         return self.db.query(self.member).filter(self.member.board_id == board_id and self.member.id == member_id).first() 

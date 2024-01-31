@@ -4,7 +4,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from core.config import get_settings
 from typing import Generator
 
-URL_DATABASE = 'mysql+pymysql://root:123456@localhost:3306/trello'
 
 settings = get_settings()
 

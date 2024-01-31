@@ -45,6 +45,11 @@ class CardService:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
         
         try:
+            for field in card.dict(exclude_unset = True):
+                field_value = getattr(card, field)
+                if isinstance(field_value, str):
+                    setattr(card, field, field_value.strip())
+
             db_card = Card(**card.dict(), list_work_id = list_work_id)
 
             card_rp = card_repo.CardRepository(db = self.db, card = db_card)
@@ -91,7 +96,11 @@ class CardService:
                 raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
             
             for field in card.dict(exclude_unset = True):
-                setattr(db_card, field, getattr(card, field))
+                field_value = getattr(card, field)
+                if isinstance(field_value, str):
+                    setattr(db_card, field, field_value.strip())
+                else:
+                    setattr(db_card, field, field_value)
 
             card_save = card_repo.CardRepository(db = self.db, card = db_card)
 

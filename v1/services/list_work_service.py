@@ -35,6 +35,11 @@ class ListWorkService:
             raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
 
         try:
+            for field in list_work.dict(exclude_unset = True):
+                field_value = getattr(list_work, field)
+                if isinstance(field_value, str):
+                    setattr(list_work, field, field_value.strip())
+
             list_db = self.list_work(**list_work.dict(), board_id = board_id)
 
             list_repo = list_work_repo.ListWorkRepository(self.db, list_db)
@@ -57,6 +62,9 @@ class ListWorkService:
 
         try:
             db_board = self.db.query(boards.Board).filter(boards.Board.id == board_id).first()
+
+            if db_board is None:
+                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'board not found')
     
             if db_board.is_delete:
                 raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
@@ -67,17 +75,25 @@ class ListWorkService:
             list_repo = list_work_repo.ListWorkRepository(self.db, self.list_work)
 
             list_db = list_repo.get_by_id(list_id)
+
+            if list_db is None:
+                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'list not found')
     
             if list_db.is_delete:
                 raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
             
             for field in list_work.dict(exclude_unset = True):
-                setattr(list_db, field, getattr(list_work, field))
+                field_value = getattr(list_work, field)
+                if isinstance(field_value, str):
+                    setattr(list_db, field, field_value.strip())
+                else:
+                    setattr(list_db, field, field_value)
 
             self.db.commit()
             self.db.refresh(list_db)
             
             return list_db.to_dto()
+                
         except HTTPException:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'update failed')
 

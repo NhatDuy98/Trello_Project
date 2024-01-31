@@ -70,15 +70,16 @@ class LabelCardService:
 
             db_label_card = label_card_rp.get_by_id(id = label_card_id)
 
-            db_delete = label_card_repo.LabelCardRepository(db = self.db, label_card = db_label_card)
+            if db_label_card:
+                db_delete = label_card_repo.LabelCardRepository(db = self.db, label_card = db_label_card)
 
-            await db_delete.delete_label_card()
+                await db_delete.delete_label_card()
 
-            label_card_check = label_card_rp.get_by_id(id = label_card_id)
+                label_card_check = label_card_rp.get_by_id(id = label_card_id)
 
-            if label_card_check:
-                return False
+                if label_card_check:
+                    return False
 
-            return True
+                return True
         except HTTPException:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'remove failed')

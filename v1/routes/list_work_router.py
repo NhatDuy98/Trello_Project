@@ -41,7 +41,7 @@ async def create_list_work(
 
     return list_work_response
 
-@router.put('/{board_id}'f'/{list_ep}''/{list_id}', response_model = list_work_schemas.ListWork, status_code = status.HTTP_200_OK)
+@router.put('/{board_id}'f'/{list_ep}''/{list_id}', response_model = list_work_schemas.ListWork, status_code = status.HTTP_201_CREATED)
 async def update_list_work(
     db: db_dependency,
     board_id: Annotated[int, Path(...)],
@@ -54,9 +54,12 @@ async def update_list_work(
                                                 list_id = list_id, 
                                                 list_work = list_work)
     
+    if list_work_response is None:
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'update failed')
+    
     return list_work_response
 
-@router.delete('/{board_id}'f'/{list_ep}''/{list_id}', status_code = status.HTTP_200_OK)
+@router.delete('/{board_id}'f'/{list_ep}''/{list_id}', status_code = status.HTTP_204_NO_CONTENT)
 async def soft_delete(
     db: db_dependency,
     board_id: Annotated[int, Path(...)],
