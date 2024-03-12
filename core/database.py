@@ -11,8 +11,10 @@ engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping = True,
     pool_recycle = 300,
-    pool_size = 2,
+    pool_size = 10,
     max_overflow = 0,
+    echo = True,
+    echo_pool = "debug"
 )
 
 SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)

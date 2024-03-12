@@ -10,6 +10,7 @@ def find_by_id(
 
 def get_all_with_pagination(
         db: Session,
+        user_id: int,
         page: int = 1,
         limit: int = 5,
         sort_by: str = None,
@@ -19,7 +20,7 @@ def get_all_with_pagination(
     
     offset = (page - 1) * limit
 
-    db_query = db.query(WorkSpace)
+    db_query = db.query(WorkSpace).filter(WorkSpace.user_id == user_id)
 
     if search:
         db_query = db_query.filter(WorkSpace.work_space_name.ilike(f"%{search}%"))

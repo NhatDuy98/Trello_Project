@@ -37,6 +37,11 @@ class MemberService:
         board_id: int,
         user: member_schemas.UserAdd
     ):
+        user_check = user_service.find_user_by_id(db = self.db, id = user.id)
+
+        if user_check is None:
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'user not found')
+
         member = member_repo.MemberRepository(self.db, self.member)
 
         db_member = member.get_all(board_id = board_id)
