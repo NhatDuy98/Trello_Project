@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from v1.models.boards import Board
+from v1.models.members import Member
 
 class BoardRepository:
     def __init__(self, db: Session, board: Board):
@@ -14,6 +15,7 @@ class BoardRepository:
     
     def get_all(
         self,
+        work_space_id: int,
         page: int = 1,
         limit: int = 5,
         sort_by: str = None,
@@ -22,7 +24,7 @@ class BoardRepository:
     ) -> list[Board]:
         offset = (page - 1) * limit
 
-        query = self.db.query(self.board)
+        query = self.db.query(self.board).filter(self.board.work_space_id == work_space_id)
 
         if search:
             query = query.filter(self.board.board_name.ilike(f'%{search}%'))
@@ -42,9 +44,18 @@ class BoardRepository:
     ) -> int:
         return self.db.query(self.board).count()
     
-    async def create_board(
-        self
+    async def create_member(
+        self,
+        member: Member
     ):
-        self.db.add(self.board)
+        self.db.add(member)
+        self.db.commit()
+        # self.db.refresh(member)
+    
+    async def create_board_and_member(
+        self,
+        member: Member
+    ):
+        self.db.add_all([self.board, member])
         self.db.commit()
         self.db.refresh(self.board)

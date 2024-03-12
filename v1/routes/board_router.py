@@ -2,6 +2,7 @@ from fastapi import APIRouter, status, Depends, Query, Path, HTTPException, Body
 from sqlalchemy.orm import Session
 from typing import Annotated
 
+from auth.auth_service import return_current_user
 from core.database import get_db
 from core.config import get_settings
 from v1.models import boards, members
@@ -19,9 +20,11 @@ router = APIRouter(
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-@router.get(f'/{board_ep}', response_model = board_schemas.BoardResponse, status_code = status.HTTP_200_OK)
+@router.get('/{work_space_id}'f'/{board_ep}', response_model = board_schemas.BoardResponse, status_code = status.HTTP_200_OK)
 def get_all_boards(
     db: db_dependency,
+    user_id: Annotated[int, Depends(return_current_user)],
+    work_space_id: Annotated[int, Path(...)],
     page: Annotated[int, Query()] = 1,
     limit: Annotated[int, Query] = 5,
     sort_by: Annotated[str, Query()] = None,
@@ -33,6 +36,8 @@ def get_all_boards(
 
     data_response = board_sv.get_all(
         page = page,
+        user_id = user_id,
+        work_space_id = work_space_id,
         limit = limit,
         sort_by = sort_by,
         sort_desc = sort_desc,
@@ -41,24 +46,30 @@ def get_all_boards(
 
     return data_response
 
-@router.get(f'/{board_ep}''/{id}', response_model = board_schemas.Board, status_code = status.HTTP_200_OK)
+@router.get('/{work_space_id}'f'/{board_ep}''/{id}', response_model = board_schemas.Board, status_code = status.HTTP_200_OK)
 def get_board_with_id(
     db: db_dependency,
+    user_id: Annotated[int, Depends(return_current_user)],
+    work_space_id: Annotated[int, Path(...)],
     id: Annotated[int, Path(...)]
 ):
     board = board_service.BoardService(db = db, board = boards.Board)
 
-    board_response = board.get_by_id(id = id)
+    board_response = board.get_by_id(
+        user_id = user_id,
+        work_space_id = work_space_id,
+        board_id = id
+    )
 
     if board_response is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'board not found')
 
     return board_response
 
-@router.post('/{user_id}/{work_space_id}/'f'{board_ep}', response_model = board_schemas.Board, status_code = status.HTTP_201_CREATED)
+@router.post('/{work_space_id}/'f'{board_ep}', response_model = board_schemas.Board, status_code = status.HTTP_201_CREATED)
 async def create_board(
     db: db_dependency,
-    user_id: Annotated[int, Path(...)],
+    user_id: Annotated[int, Depends(return_current_user)],
     work_space_id: Annotated[int, Path(...)],
     board: Annotated[board_schemas.BoardCreate, Body(...)]
 ):
@@ -76,29 +87,33 @@ async def create_board(
 
     return board_response
 
-@router.patch(f'/{board_ep}''/{board_id}', response_model = board_schemas.BoardUpdated, status_code = status.HTTP_201_CREATED)
+@router.patch('{work_space_id}'f'/{board_ep}''/{board_id}', response_model = board_schemas.BoardUpdated, status_code = status.HTTP_201_CREATED)
 def update_board(
     db: db_dependency,
+    user_id: Annotated[int, Depends(return_current_user)],
+    work_space_id: Annotated[int, Path(...)],
     board_id: Annotated[int, Path(...)],
     board: Annotated[board_schemas.BoardUpdate, Body(...)]
 ):
     board_sv = board_service.BoardService(db = db, board = boards.Board)
 
-    board_response = board_sv.update_board(id = board_id, board_update = board)
+    board_response = board_sv.update_board(id = board_id, board_update = board, work_space_id = work_space_id, user_id = user_id)
 
     if board_response is None:
         raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'create failed')
 
     return board_response
 
-@router.delete(f'/{board_ep}''/{id}', status_code = status.HTTP_204_NO_CONTENT)
+@router.delete('/{work_space_id}'f'/{board_ep}''/{id}', status_code = status.HTTP_204_NO_CONTENT)
 def soft_delete_board(
     db: db_dependency,
+    user_id: Annotated[int, Depends(return_current_user)],
+    work_space_id: Annotated[int, Path(...)],
     id: Annotated[int, Path(...)]
 ):
     board = board_service.BoardService(db = db, board = boards.Board)
 
-    board_response = board.soft_delete(id = id)
+    board_response = board.soft_delete(id = id, user_id = user_id, work_space_id = work_space_id)
 
     return {'message': f'delete {board_response.board_name} successfully'}
 
@@ -117,6 +132,7 @@ def get_all_members_in_board(
 @router.post(f'/{board_ep}''/{board_id}'f'/{member_ep}', status_code = status.HTTP_201_CREATED)
 async def add_member_to_board(
     db: db_dependency,
+    user_id: Annotated[int, Depends(return_current_user)],
     board_id: Annotated[int, Path(...)],
     user: Annotated[member_schemas.UserAdd, Body(...)]
 ):
@@ -130,6 +146,7 @@ async def add_member_to_board(
 @router.delete(f'/{board_ep}''/{board_id}'f'/{member_ep}''/{member_id}', status_code = status.HTTP_204_NO_CONTENT)
 def delete_member(
     db: db_dependency,
+    user_id: Annotated[int, Depends(return_current_user)],
     board_id: Annotated[int, Path(...)],
     member_id: Annotated[int, Path(...)]
 ):

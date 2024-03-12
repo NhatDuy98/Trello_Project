@@ -83,34 +83,37 @@ def update_all_info_user(
     user: user_schemas.UserUpdate
 ) -> user_schemas.User:
     
-    if not user.dict(exclude_unset = True):
-        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+        
+        if not user.dict(exclude_unset = True):
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
 
-    db_user = user_repo.find_by_id(db, id)
+        db_user = user_repo.find_by_id(db, id)
 
-    if db_user is None:
-        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'user not found')
+        if db_user is None:
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'user not found')
 
-    if db_user.is_active is False:
-        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "user deleted can not update")
+        if db_user.is_active is False:
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = "user deleted can not update")
+        
+        if user.email and user.email != db_user.email:
+            user_email = find_user_by_email(db = db, email = user.email)
+            if user_email:
+                raise HTTPException(status_code = status.HTTP_409_CONFLICT, detail = 'email already used')
+
+        for field in user.dict(exclude_unset=True):
+            field_value = getattr(user, field)
+            if isinstance(field_value, str):
+                setattr(db_user, field, field_value.strip())
+            else:
+                setattr(db_user, field, field_value)
+
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+
+        return db_user.to_dto()
     
-    if user.email and user.email != db_user.email:
-        user_email = find_user_by_email(db = db, email = user.email)
-        if user_email:
-            raise HTTPException(status_code = status.HTTP_409_CONFLICT, detail = 'email already used')
-
-    for field in user.dict(exclude_unset=True):
-        field_value = getattr(user, field)
-        if isinstance(field_value, str):
-            setattr(db_user, field, field_value.strip())
-        else:
-            setattr(db_user, field, field_value)
-
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-
-    return db_user.to_dto()
+    
 
 def update_part_info_user(
     db: Session,

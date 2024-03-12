@@ -16,6 +16,7 @@ def get_work_space_by_id(
 
 def get_all_with_pagination(
         db: Session,
+        user_id: int,
         page: int = 1,
         limit: int = 5,
         sort_by: str = None,
@@ -28,9 +29,10 @@ def get_all_with_pagination(
         
         if sort_by not in WorkSpace.__dict__ and sort_by is not None:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
-
+        
         work_spaces, total = work_space_repo.get_all_with_pagination(
             db = db,
+            user_id = user_id,
             page = page,
             limit = limit,
             sort_by = sort_by,

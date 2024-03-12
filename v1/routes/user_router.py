@@ -1,4 +1,5 @@
 from fastapi import APIRouter, status, Depends, Query, Path, HTTPException, Body
+from auth.auth_service import return_current_user
 from core.database import get_db
 from core.config import get_settings
 from sqlalchemy.orm import Session
@@ -56,10 +57,10 @@ async def get_user_by_id(
 
     return user
 
-@router.put('/{id}', response_model= User, status_code = status.HTTP_201_CREATED)
+@router.put('', response_model= User, status_code = status.HTTP_201_CREATED)
 async def update_info_user(
     db: db_dependency,
-    id: Annotated[int, Path(...)],
+    id: Annotated[int, Depends(return_current_user)],
     user: Annotated[UserUpdate, Body(...)]
 ):
     user_response = user_service.update_all_info_user(
@@ -73,10 +74,10 @@ async def update_info_user(
     
     return user_response
 
-@router.patch('/{id}', response_model = UserUpdateAPart, status_code = status.HTTP_201_CREATED)
+@router.patch('', response_model = UserUpdateAPart, status_code = status.HTTP_201_CREATED)
 async def update_part_info_user(
     db: db_dependency,
-    id: Annotated[int, Path(...)],
+    id: Annotated[int, Depends(return_current_user)],
     user: Annotated[UpdateAPart, Body(...)]
 ):
     
@@ -97,10 +98,10 @@ async def update_part_info_user(
     return user_response
 
 
-@router.delete('/{id}', status_code = status.HTTP_204_NO_CONTENT)
+@router.delete('', status_code = status.HTTP_204_NO_CONTENT)
 async def soft_delete_user(
     db: db_dependency,
-    id: Annotated[int, Path(...)]
+    id: Annotated[int, Depends(return_current_user)]
 ):
     user = user_service.soft_delete_user(db, id)
 

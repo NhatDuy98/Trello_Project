@@ -17,12 +17,26 @@ class BoardService:
 
     def get_by_id(
         self,
-        id: int
+        user_id: int,
+        work_space_id: int,
+        board_id: int
     ):
         try:
+
+            db_work_space = work_space_service.get_work_space_by_id(self.db, work_space_id)
+
+            if db_work_space is None:
+                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'work space not found')
+    
+            if db_work_space.is_delete:
+                raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
+            
+            if db_work_space.user_id != user_id:
+                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+
             board_rp = board_repo.BoardRepository(self.db, self.board)
 
-            board = board_rp.get_by_id(id)
+            board = board_rp.get_by_id(board_id)
 
             if board:
                 return board.to_dto()
@@ -32,6 +46,8 @@ class BoardService:
 
     def get_all(
         self,
+        user_id: int,
+        work_space_id: int,
         page: int = 1,
         limit: int = 5,
         sort_by: str = None,
@@ -44,13 +60,25 @@ class BoardService:
         
             if sort_by not in board_model.__dict__ and sort_by is not None:
                 raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+            
+            db_work_space = work_space_service.get_work_space_by_id(self.db, work_space_id)
+
+            if db_work_space is None:
+                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'work space not found')
+    
+            if db_work_space.is_delete:
+                raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
+            
+            if db_work_space.user_id != user_id:
+                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
 
             board_repos = board_repo.BoardRepository(self.db, self.board)
 
             boards, total = board_repos.get_all(
                 page = page,
+                work_space_id = work_space_id,
                 limit = limit,
-                sort_by = sort_by,
+                sort_by = sort_by,  
                 sort_desc = sort_desc,
                 search = search
             )
@@ -68,24 +96,31 @@ class BoardService:
         work_space_id: int,
         board_create: board_schemas.BoardCreate
     ):
-        if not board_create.dict(exclude_unset = True):
-            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+        try:
+            if not board_create.dict(exclude_unset = True):
+                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
         
-        db_user = user_service.find_user_by_id(self.db, user_id)
+            db_user = user_service.find_user_by_id(self.db, user_id)
 
-        if db_user is None:
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'user not found')
+            if db_user is None:
+                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'user not found')
     
-        if db_user.is_active is False:
-            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
+            if db_user.is_active is False:
+                raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
 
-        db_work_space = work_space_service.get_work_space_by_id(self.db, work_space_id)
+            db_work_space = work_space_service.get_work_space_by_id(self.db, work_space_id)
 
-        if db_work_space is None:
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'work space not found')
+            if db_work_space is None:
+                raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'work space not found')
     
-        if db_work_space.is_delete:
-            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
+            if db_work_space.is_delete:
+                raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
+            
+            if db_work_space.user_id != user_id:
+                raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'user not allow')
+
+        except HTTPException:
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'not allow')
         
         try:
             for field in board_create.dict(exclude_unset=True):
@@ -97,13 +132,9 @@ class BoardService:
         
             db_board = board_repo.BoardRepository(self.db, board_save)
 
-            await db_board.create_board()
+            db_member = members.Member(user = db_user, board = board_save, role = 'HOST')
 
-            db_member = members.Member(user_id = user_id, board_id = board_save.id, role = 'HOST')
-
-            member_save = member_repo.MemberRepository(self.db, db_member)
-
-            member_save.add_member() #check code with await
+            await db_board.create_board_and_member(db_member)
 
             return board_save.to_dto()
         
@@ -112,10 +143,23 @@ class BoardService:
         
     def update_board(
         self,
+        work_space_id:int,
+        user_id: int,
         id: int,
         board_update: board_schemas.BoardUpdate
     ):
         if not board_update.dict(exclude_unset = True):
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+        
+        db_work_space = work_space_service.get_work_space_by_id(self.db, work_space_id)
+
+        if db_work_space is None:
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'work space not found')
+    
+        if db_work_space.is_delete:
+            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
+            
+        if db_work_space.user_id != user_id:
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
         
         board = board_repo.BoardRepository(self.db, self.board)
@@ -146,8 +190,21 @@ class BoardService:
     
     def soft_delete(
         self,
+        user_id: int,
+        work_space_id: int,
         id: int
     ):
+        db_work_space = work_space_service.get_work_space_by_id(self.db, work_space_id)
+
+        if db_work_space is None:
+            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'work space not found')
+    
+        if db_work_space.is_delete:
+            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'not allow')
+            
+        if db_work_space.user_id != user_id:
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'system error')
+
         board_rp = board_repo.BoardRepository(self.db, self.board)
 
         db_board = board_rp.get_by_id(id = id)

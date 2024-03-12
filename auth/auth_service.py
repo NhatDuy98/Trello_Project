@@ -81,8 +81,7 @@ def get_current_user(
         if id is None:
             raise credentials_exception
         
-        if db is None:
-            db = next(get_db())
+        db = next(get_db())
 
         user = user_repo.find_by_id(db = db, id = id)
 
@@ -96,3 +95,28 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
     
+
+def return_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db = None
+):
+    try:
+        data = jwt.decode(token, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
+        id: str = data.get("id")
+
+        if id is None:
+            raise credentials_exception
+        
+        db = next(get_db())
+
+        user = user_repo.find_by_id(db = db, id = id)
+
+        if user is None:
+            raise credentials_exception
+        
+        if user.is_active is False:
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = 'user not active')
+        
+        return id
+    except JWTError:
+        raise credentials_exception
